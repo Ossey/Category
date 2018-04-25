@@ -132,5 +132,71 @@ print(a['name'], a['age'])
 #可见__getitem__使实例可以像字典一样访问
 #__setitem__ 设置容器中指定元素的行为，相当于self[key] = value
 
+# __getattr__(self,name)，__getattribute__(self,name)，__setattr__(self,name,value)，__delattr__(self,name)，__get__(self,instance,owner)，__set__(self,instance,value)，__delete__(self,instance)
+'''
+__getattr__ 定义当用户试图访问一个不存在属性的时候的行为
+
+　　__setattr__ 定义当一个属性被设置的时候的行为
+
+　　__getattribute__ 定义当一个属性被访问的时候的行为
+'''
+
+class Persion2(object):
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+        self._registry = {
+            'name': name,
+            'age': age
+        }
+    def __getattr__(self, item):
+        print("don't have the attritube" + item)
+        return False
+
+    def __setattr__(self, key, value):
+        self.__dict__[key] = value
+
+    def __getattribute__(self, item):
+        # 注意此处不要用 self.__dict__[item]
+        # 因为self.__dict__ 依然会被__getattribute__拦截，这样会进入死循环
+        return object.__getattribute__(self, item)
+
+b = Persion2('p2', 20)
+print(b.mm)  # 打印 don't have the attritubehh，因为没有mm这个属性
+a.mm = 'mmmm' # 这里设置该属性值为'mmmm'
+print(a.mm)  # 这里打印mmmm
+
+'''
+__delattr__ 定义当一个属性被删除的时候的行为
+
+　　__get__  定义当描述符的值被取得的时候的行为
+
+　　__set__ 定义当描述符的值被设置的时候的行为
+
+　　__delete__ 定义当描述符的值被删除的时候的行为
+'''
+class Descriptor(object):
+    def __init__(self):
+        self.des = None
+    def __get__(self, instance, owner):
+        return instance.__dict__.get(self.des, None)
+
+    def __set__(self, instance, value):
+        instance.__dict__[self.des] = value
+
+class Persion3(object):
+    des = Descriptor()  # 这里Descriptor就是一个描述符类
+
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+        self._registry = {
+            'name' : name,
+            'age' : age
+        }
+p3 = Persion3('p3', 20)
+p3.des = 10 #这里会调用Descriptor的__set__方法
+print(p3.des) #这里会调用Descriptor的__get__方法
+
 
 
